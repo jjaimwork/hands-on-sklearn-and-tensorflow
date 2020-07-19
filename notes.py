@@ -134,7 +134,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor 
 
-# for LINEAR REGRESSION
+```fr LINEAR REGRESSION```
 lin_reg = LinearRegression()
 lin_reg.fit(housing_prepared, housing_labels)
 
@@ -152,7 +152,7 @@ lin_rmse = np.sqrt(lin_mse)
 > 68628.19819848923
 ```underfitting```
 
-# DECISION TREE REGRESSOR
+```DECISION TREE REGRESSOR```
 from sklearn.tree import DecisionTreeRegressor
 tree_reg = DecisionTreeRegressor()
 tree_reg.fit(housing_prepared, housing_labels)
@@ -163,7 +163,7 @@ tree_rmse = np.sqrt(tree_mse)
 > 0.0 
 ```overfitting```
 
-# RANDOM FOREST REGRESSOR
+```RANDOM FOREST REGRESSOR```
 from sklearn.ensemble import RandomForestRegressor
 forest_reg = RandomForestRegressor(n_estimators=10, random_state=42)
 forest_reg.fit(housing_prepared, housing_labels)
@@ -172,7 +172,7 @@ forest_mse = mean_squared_error(housing_labels, housing_predictions)
 forest_rmse = np.sqrt(forest_mse)
 >>>forest_rmse
 
-# using of **VALIDATION** set with k-fold
+```using of **VALIDATION** set with k-fold```
 ```from here we split the data into folds and test them```
 from sklearn.model_selection import cross_val_score
 scores = cross_val_score(tree_reg, housing_prepared, housing_labels,
@@ -203,6 +203,108 @@ rmse_scores = np.sqrt(-scores)
 > Mean:  52583.72407377466
 > Standard Deviation:  2298.353351147122
 ```RFR HAVE BETTER VALIDATION RESULTS```
+
+```FINE TUNING AND GRID SEARCH```
+'''
+gridsearch allows you to fiddle with hyperparameters and apply them to the model
+without having to tune the hyperparameters manually
+'''
+
+from sklearn.model_selection import GridSearchCV
+# parameter grid
+param_grid = [
+    {'n_estimators': [3,10,30], 'max_features': [2,4,6,8]}
+    #bootstrap = method for sampling data points
+    {'bootstrap':False, 'n_estimators':[3,10], 'max_features':[2,3,4]}
+]
+
+# calls upon randomforestfunction
+forest_reg = RandomForestRegressor()
+
+# grid search then uses rfr as parameter for searching
+grid_search = GridSearchCV(forest_reg, param_grid,cv=5,
+                            scoring ='neg_mean_squared_error')
+
+grid_search.fit(housing_prepared, housing_labels)
+
+# shows the best parameter
+>>>grid_search.best_params_
+> {'max_features': 6, 'n_estimators': 30}
+
+# calls upon the best estimators
+>>>grid_search.best_estimator_
+RandomForestRegressor(bootstrap=True, ccp_alpha=0.0, criterion='mse',
+                      max_depth=None, max_features=6, max_leaf_nodes=None,
+                      max_samples=None, min_impurity_decrease=0.0,
+                      min_impurity_split=None, min_samples_leaf=1,
+                      min_samples_split=2, min_weight_fraction_leaf=0.0,
+                      n_estimators=30, n_jobs=None, oob_score=False,
+                      random_state=None, verbose=0, warm_start=False)
+
+cvres = grid_search.cv_results_
+for mean_score, params in zip(cvres['mean_test_score']):
+    print(np.sqrt(-mean_score),params)
+
+>
+63753.5461528816 {'max_features': 2, 'n_estimators': 3}
+56152.21937257319 {'max_features': 2, 'n_estimators': 10}
+52795.21689339568 {'max_features': 2, 'n_estimators': 30}
+60451.094331092594 {'max_features': 4, 'n_estimators': 3}
+53192.357091620055 {'max_features': 4, 'n_estimators': 10}
+50502.27548914166 {'max_features': 4, 'n_estimators': 30}
+59451.09352442982 {'max_features': 6, 'n_estimators': 3}
+52024.08066167432 {'max_features': 6, 'n_estimators': 10}
+49977.58768754372 {'max_features': 6, 'n_estimators': 30}           <-```best estimator```
+58376.64679593403 {'max_features': 8, 'n_estimators': 3}
+52089.93695027458 {'max_features': 8, 'n_estimators': 10}
+50309.329963579 {'max_features': 8, 'n_estimators': 30}
+62494.38975288301 {'bootstrap': False, 'max_features': 2, 'n_estimators': 3}
+54586.08947518622 {'bootstrap': False, 'max_features': 2, 'n_estimators': 10}
+60092.32083232561 {'bootstrap': False, 'max_features': 3, 'n_estimators': 3}
+52607.240151793594 {'bootstrap': False, 'max_features': 3, 'n_estimators': 10}
+58543.89023752621 {'bootstrap': False, 'max_features': 4, 'n_estimators': 3}
+51816.00617104736 {'bootstrap': False, 'max_features': 4, 'n_estimators': 10}
+
+```Analyzing the Best Models and Their errors```
+
+feature_importances = grid_search.best_estimator_.feature_importances_
+>>> feature_importances
+>      array([7.88085467e-02, 7.33496388e-02, 4.09954065e-02, 1.67091258e-02,
+       1.73554988e-02, 1.77318205e-02, 1.59227275e-02, 3.07956727e-01,
+       5.38513930e-02, 1.10407460e-01, 9.81576768e-02, 7.59214979e-03,
+       1.53346255e-01, 9.45085982e-05, 2.55826347e-03, 5.16280248e-03])
+
+cat_one_hot_attribs = list(encoder.classes_)
+sorted(zip(feature_importances, attibutes), reverse=True)
+
+[(0.30795672652438416, 'median_income'),
+ (0.15334625523523016, 'INLAND'),
+ (0.11040745956098118, 'pop_per_hhold'),
+ (0.09815767677490277, 'bedrooms_per_room'),
+ (0.07880854666610768, 'longitude'),
+ (0.07334963881963506, 'latitude'),
+ (0.053851393042369335, 'rooms_per_hhold'),
+ (0.040995406457984815, 'housing_median_age'),
+ (0.017731820497973446, 'population'),
+ (0.017355498758235867, 'total_bedrooms'),
+ (0.016709125785504313, 'total_rooms'),
+ (0.0159227275319888, 'households'),
+ (0.007592149789429611, '<1H OCEAN'),               <- ```Remove```
+ (0.005162802483529534, 'NEAR OCEAN'),              <- ```Remove```
+ (0.002558263473579651, 'NEAR BAY'),                <- ```Remove```
+ (9.450859816373917e-05, 'ISLAND')]
+
+final_model = grid_search.best_estimator
+
+X_test = strat_test_set.drop("median_house_value",axis=1)
+y_test = strat_test_set['median_house_value'].copy()
+
+X_test_prepared = full_pipeline.transform(X_test)
+final_predictions = final_model.predict(X_test_prepared)
+final_mse = mean_squared_error(y_test, final_predictions)
+final_rmse = np.sqrt(final_mse)
+>final_rmse
+>>>48078.53091897726
 
 
 
