@@ -1,0 +1,29 @@
+Notations
+
+n - number of distinct data points
+p - denote the number of variables that are available
+
+e.q. ; Wage 
+12 variables; 3000 people
+n = 3000, p = 12
+
+(12 represents; age, sex, year ...)
+
+from the data points
+xij ; note ij are subscripts
+
+i = 1,2,...,n
+j = 1,2,...,p
+
+X is used when denoting [np]
+
+e.q.; 
+
+X = [x11  x12 ... x1p
+     x21  x22 ... x2p
+     .    .  .    .
+     .    .    .  .
+     .    .      ..
+     xn1  xn2 ... xnp]
+
+
